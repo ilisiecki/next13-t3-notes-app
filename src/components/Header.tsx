@@ -1,5 +1,6 @@
 import React from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 
 const Header = () => {
   const { data: sessionData } = useSession();
@@ -16,9 +17,11 @@ const Header = () => {
               <>
                 <div className="btn-ghost btn-circle avatar btn mr-5">
                   <div className="w-20 rounded-full align-middle">
-                    <img
+                    <Image
                       src={sessionData?.user?.image ?? ""}
                       alt={sessionData?.user?.name ?? ""}
+                      width={20}
+                      height={20}
                     />
                   </div>
                 </div>
