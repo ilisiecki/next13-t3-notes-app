@@ -1,16 +1,14 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Header from "~/components/Header";
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
-
+import { NoteEditor } from "~/components/NoteEditor";
 import { api, type RouterOutputs } from "~/utils/api";
+import { NoteCard } from "~/components/NoteCard";
 
 const Home: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
-
   return (
     <>
       <Head>
@@ -32,7 +30,6 @@ type Topic = RouterOutputs["topic"]["getAll"][0];
 
 const Content: React.FC = () => {
   const { data: sessionData } = useSession();
-
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
 
   const { data: topics, refetch: refetchTopics } = api.topic.getAll.useQuery(
@@ -49,6 +46,29 @@ const Content: React.FC = () => {
     onSuccess: () => {
       toast.success("Topic created");
       void refetchTopics();
+    },
+  });
+
+  const { data: notes, refetch: refetchNotes } = api.note.getAll.useQuery(
+    {
+      topicId: selectedTopic?.id ?? "",
+    },
+    {
+      enabled: sessionData?.user !== undefined && selectedTopic !== null,
+    }
+  );
+
+  const createNote = api.note.create.useMutation({
+    onSuccess: () => {
+      toast.success("Note created");
+      void refetchNotes();
+    },
+  });
+
+  const deleteNote = api.note.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Note deleted");
+      void refetchNotes();
     },
   });
 
@@ -85,7 +105,28 @@ const Content: React.FC = () => {
               }
             }}
           />
-          <div className="col-span-3"></div>
+        </div>
+        <div className="col-span-3">
+          <div>
+            {notes?.map((note) => (
+              <div key={note.id} className="mt-5">
+                <NoteCard
+                  note={note}
+                  onDelete={() => void deleteNote.mutate({ id: note.id })}
+                />
+              </div>
+            ))}
+          </div>
+
+          <NoteEditor
+            onSave={({ title, content }) => {
+              void createNote.mutate({
+                title,
+                content,
+                topicId: selectedTopic?.id ?? "",
+              });
+            }}
+          />
         </div>
       </div>
       <Toaster position="bottom-right" reverseOrder={false} />

@@ -23,7 +23,7 @@ const Header = () => {
                   </div>
                 </div>
                 <button
-                  className="btn-sm btn btn mt-2.5 align-top text-white"
+                  className="btn-sm btn mt-2.5 align-top text-white"
                   onClick={() => void signOut()}
                 >
                   Log Out
